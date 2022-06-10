@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="PT">
+
+<head>
+    <link rel="shortcut icon" href="../assets/icon/favicon.ico" type="image/x-icon">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CURATELA | Quiz</title>
+
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="dashboards.css">
+    <script src="../js/funcoes.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+
+    <!-- scripts do Chart.js -->
+    <script type="text/javascript" src="https://www.chartjs.org/dist/2.8.0/Chart.min.js"></script>
+
+</head>
+
+<body onload="validarSessao(), atualizarFeed()">
+
+    <div class="janela">
+        <div class="header-left dash-header">
+            <img style="height: 20vh;" src="../assets/imgs/logo-curatela-completo.png" alt="">
+
+            <div class="hello">
+                <h3>Olá, <span id="b_usuario">usuário</span>!</h3>
+            </div>
+
+            <div class="btn-nav-white">
+                <a href="dashboard.html">
+                    <h3>Dashboard</h3>
+                </a>
+            </div>
+
+            <div class="btn-nav">
+
+                <h3>Quiz</h3>
+
+            </div>
+
+            <div class="btn-nav-white">
+                <a href="gerador.html">
+                    <h3>Smart Template</h3>
+                </a>
+            </div>
+
+            <div class="btn-nav-white">
+                <a href="gerador.html">
+                    <h3>Eco Store</h3>
+                </a>
+            </div>
+
+            <div class="btn-logout">
+                <a href="../login.html">
+                    <h3>Sair</h3>
+                </a>
+            </div>
+
+
+        </div>
+
+        <div class="start_btn">
+            <button onclick="iniciar()">Iniciar Quiz</button>
+        </div>
+
+        <div id="info_box" class="info-box">
+            <div class="info_title">
+                <span>Instruções Sobre o Quiz</span>
+            </div>
+            <div class="info_list">
+                <div class="info">1. Cada pergunta vale <span>10 pontos</span>.</div>
+                <div class="info">2. Depois de selecionar sua resposta, você não pode selecionar novamente.</div>
+                <div class="info">3. O quiz é automaticamente reiniciado ao terminar.</div>
+                <div class="info">4. Você não pode sair do Quiz enquanto estiver jogando.</div>
+                <div class="info">5. Você receberá pontos com base em suas respostas corretas.</div>
+            </div>
+            <div class="buttons">
+                <button class="quit" onclick="voltar()">Voltar</button>
+                <button class="restart" onclick="continuar()">Continuar</button>
+            </div>
+        </div>
+
+        <!-- Caixa Quiz -->
+        <div id="quiz_box" class="quiz_box">
+            <header>
+                <div class="title">Quiz</div>
+                <div class="timer">
+                    <div class="time_text">Pontos</div>
+                    <div class="time_sec" id="pontuacao">0</div>
+                </div>
+            </header>
+            <article class='centro' id='resultado'>
+            </article>
+            <section class="questoes">
+                <div class="que_text">
+                    <span id="numQuestao"></span> |
+                    <span id="pergunta"></span>
+                </div>
+                <ol class="option_list" type="A" id="alternativas">
+                    <li id='a' value='1A' class="option" onClick='verificarSeAcertou(this, this)'></li>
+                    <li id='b' value='1B' class="option" onClick='verificarSeAcertou(this, this)'></li>
+                    <li id='c' value='1C' class="option" onClick='verificarSeAcertou(this, this)'></li>
+                </ol>
+
+            </section>
+            <!-- Footer caixa quiz -->
+            <footer>
+                <div class="total_que">
+                    <span id='aviso'>
+                        <p id='numero' class="pe"></p> de <p id="total" class="pe"></p> Questões
+                    </span>
+                </div>
+            </footer>
+        </div>
+
+    </div>
+
+    <script id="ze-snippet"
+        src="https://static.zdassets.com/ekr/snippet.js?key=c3a4a83b-ee1e-4895-863c-305e51b5d28e"> </script>
+
+</body>
+
+</html>
+
+<script>
+    b_usuario.innerHTML = sessionStorage.NOME_USUARIO;
+
+    function iniciar() {
+        document.getElementById("info_box").style.display = "block";
+    }
+
+    function voltar() {
+        document.getElementById("info_box").style.display = "none";
+    }
+
+    function continuar() {
+        document.getElementById("info_box").style.display = "none";
+
+        document.getElementById("quiz_box").style.display = "block";
+    }
+
+    //let respostaEsta = document.querySelector('#respostaEsta')
+    let pontos = 0 // pontos para o placar
+    let placar = 0 // placar
+
+    // PERGUNTA
+    let numQuestao = document.querySelector('#numQuestao')
+    let pergunta = document.querySelector('#pergunta')
+
+    // ALTERNATIVAS
+    let a = document.querySelector('#a')
+    let b = document.querySelector('#b')
+    let c = document.querySelector('#c')
+
+    // section com a class questoes
+    let sectionQuestoes = document.querySelector('.questoes')
+    // ol li com as alternativas
+    let alternativas = document.querySelector('#alternativas')
+
+    const q0 = {
+        numQuestao: 0,
+        pergunta: "Pergunta",
+        alternativaA: "Alternativa A",
+        alternativaB: "Alternativa B",
+        alternativaC: "Alternativa C",
+        correta: "0",
+    }
+
+    const q1 = {
+        numQuestao: 1,
+        pergunta: "O que melhor define sustentabilidade?",
+        alternativaA: "Suprir necessidades do presente sem esgotar recursos para o futuro",
+        alternativaB: "Termo que se refere exclusivamente a preservação ambiental",
+        alternativaC: "Investir no desenvolvimento de produtos com matéria prima da floresta",
+        correta: "Suprir necessidades do presente sem esgotar recursos para o futuro",
+    }
+
+    const q2 = {
+        numQuestao: 2,
+        pergunta: "O que são os Objetivos de Desenvolvimento Sustentável (ODS)?",
+        alternativaA: "17 objetivos propostos pela WWF para serem atingidos até 2030 que envolvem várias dimensões do desenvolvimento sustentável",
+        alternativaB: "25 objetivos propostos pela ONU para serem atingidos até 2030 que envolvem várias dimensões do desenvolvimento sustentável",
+        alternativaC: "17 objetivos propostos pela ONU para serem atingidos até 2030 que envolvem várias dimensões do desenvolvimento sustentável",
+        correta: "17 objetivos propostos pela ONU para serem atingidos até 2030 que envolvem várias dimensões do desenvolvimento sustentável",
+    }
+
+    const q3 = {
+        numQuestao: 3,
+        pergunta: "Quando foi firmado o Acordo de Paris, tratado mundial para reduzir o aquecimento global?",
+        alternativaA: "Em dezembro de 2015, durante a COP 21",
+        alternativaB: "Em janeiro de 2020, durante o Fórum Econômico Mundial",
+        alternativaC: "Em dezembro de 2009, durante a COP 15",
+        correta: "Em dezembro de 2015, durante a COP 21",
+    }
+
+    const q4 = {
+        numQuestao: 4,
+        pergunta: "O que melhor define o conceito de upcycling?",
+        alternativaA: "Usar a criatividade para dar um novo propósito para um material que seria descartado",
+        alternativaB: "Utilizar um produto além de sua vida útil",
+        alternativaC: "Equipamento, móvel ou roupa passado de geração em geração em uma família",
+        correta: "Usar a criatividade para dar um novo propósito para um material que seria descartado",
+    }
+
+    const q5 = {
+        numQuestao: 5,
+        pergunta: "Atualmente, qual país é o maior emissor de dióxido de carbono (CO2), o principal gás responsável pelo efeito estufa?",
+        alternativaA: "Estados Unidos",
+        alternativaB: "Brasil",
+        alternativaC: "China",
+        correta: "China",
+    }
+
+    // CONSTANTE COM UM ARRAY DE OBJETOS COM TODAS AS QUESTOES
+    const questoes = [q0, q1, q2, q3, q4, q5]
+
+    let numero = document.querySelector('#numero')
+    let total = document.querySelector('#total')
+
+    numero.textContent = q1.numQuestao
+
+    let totalDeQuestoes = (questoes.length) - 1
+    console.log("Total de questões " + totalDeQuestoes)
+    total.textContent = totalDeQuestoes
+
+    // MONTAR A 1a QUESTAO COMPLETA, para iniciar o Quiz
+    numQuestao.textContent = q1.numQuestao
+    pergunta.textContent = q1.pergunta
+    a.textContent = q1.alternativaA
+    b.textContent = q1.alternativaB
+    c.textContent = q1.alternativaC
+
+    // CONFIGURAR O VALUE INICIAL DA 1a QUESTAO COMPLETA
+    a.setAttribute('value', '1A')
+    b.setAttribute('value', '1B')
+    c.setAttribute('value', '1C')
+
+    // PARA MONTAR AS PROXIMAS QUESTOES
+    function proximaQuestao(nQuestao) {
+        numero.textContent = nQuestao
+        numQuestao.textContent = questoes[nQuestao].numQuestao
+        pergunta.textContent = questoes[nQuestao].pergunta
+        a.textContent = questoes[nQuestao].alternativaA
+        b.textContent = questoes[nQuestao].alternativaB
+        c.textContent = questoes[nQuestao].alternativaC
+        a.setAttribute('value', nQuestao + 'A')
+        b.setAttribute('value', nQuestao + 'B')
+        c.setAttribute('value', nQuestao + 'C')
+    }
+
+    function bloquearAlternativas() {
+        a.classList.add('bloqueado')
+        b.classList.add('bloqueado')
+        c.classList.add('bloqueado')
+    }
+
+    function desbloquearAlternativas() {
+        a.classList.remove('bloqueado')
+        b.classList.remove('bloqueado')
+        c.classList.remove('bloqueado')
+    }
+
+    function verificarSeAcertou(nQuestao, resposta) {
+
+        let numeroDaQuestao = nQuestao.value
+        console.log("Questão " + numeroDaQuestao)
+
+        let respostaEscolhida = resposta.textContent
+        //console.log("RespU " + respostaEscolhida)
+
+        let certa = questoes[numeroDaQuestao].correta
+        //console.log("RespC " + certa)
+
+        if (respostaEscolhida == certa) {
+            //console.log("Acertou")
+            //respostaEsta.textContent = "Correta 😊"
+            pontos += 10 // pontos = pontos + 10
+        } else {
+            //console.log("Errou!")
+            //respostaEsta.textContent = "Errada 😢"
+        }
+
+        // atualizar placar
+        pontuacao.textContent = pontos
+
+        // bloquear a escolha de opcoes
+        bloquearAlternativas()
+
+        setTimeout(function () {
+            //respostaEsta.textContent = '...'
+            proxima = numeroDaQuestao + 1
+
+            if (proxima > totalDeQuestoes) {
+                console.log('Fim do Jogo!')
+                fimDoJogo()
+            } else {
+                proximaQuestao(proxima)
+            }
+        }, 250)
+        desbloquearAlternativas()
+    }
+
+    function fimDoJogo() {
+        resultado.textContent = `Você finalizou o Quiz de Sustentabilidade!!`
+        numQuestao.textContent = ""
+
+        let pont = ''
+        pontos == 0 ? pont = 'ponto' : pont = 'pontos'
+
+        pergunta.textContent = `Você conseguiu ${pontos} ${pont} E acertou `;
+
+        aviso.textContent = `Você conseguiu ${pontos} ${pont}. E acertou ${pontos/50*100}%`
+
+        a.textContent = ""
+        b.textContent = ""
+        c.textContent = ""
+
+        a.setAttribute('value', '0')
+        b.setAttribute('value', '0')
+        c.setAttribute('value', '0')
+
+        
+        // OCULTAR O section DA QUESTAO
+        sectionQuestoes.style.display = 'none';
+        enviarResultadoQuiz()
+
+        setTimeout(function () {
+            pontos = 0 // zerar placar
+            location.reload();
+        }, 5000)
+    }
+
+    function enviarResultadoQuiz()
+    {
+        let fkUsuario = sessionStorage.ID_USUARIO;
+        let porcentagem = pontos/50*100;
+        
+        
+        fetch('/usuarios/quiz-resultado',{
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                fkUsuarioServer: fkUsuario,
+                porcentagemServer: porcentagem
+            })
+        })
+            .then((resposta) => {
+                if(resposta.ok)
+                {
+                    console.log('Voto computado')
+                }
+                else 
+                {
+                    console.log('Houve um erro ao computar o voto');
+                }
+            })
+            .catch((erro) => {
+                console.log(erro);
+            })
+
+    }
+
+</script>
+
+
+<!--  <div class="dash">
+    <div class="icon tick"><i class="fa fa-check" aria-hidden="true"></i>
+                        </div>
+            <div class="btns-dash">
+                 O gráfico é chamado de acordo com o id (fk_aquario) do banco
+                <button class="btn-chart btn-pink" onclick="obterDadosGrafico(1)">Aquario 1</button>
+                <button class="btn-chart btn-white" onclick="obterDadosGrafico(2)">Aquario 2</button>
+                <button class="btn-chart btn-white" onclick="obterDadosGrafico(3)">Aquario 3</button>
+                <button class="btn-chart btn-white" onclick="obterDadosGrafico(4)">Aquario 4</button>
+            </div>
+            <div>
+                <h3 class="tituloGraficos">
+                    <span id="tituloAquario">123</span>
+                </h3>
+            </div>
+            <div class="graph">
+                <canvas id="canvas_grafico"></canvas>
+            </div>
+        </div>-->
+
+<!-- <script>
+
+    let proximaAtualizacao;
+
+    window.onload = obterDadosGrafico(1);
+
+    b_usuario.innerHTML = sessionStorage.NOME_USUARIO;
+
+    verificar_autenticacao();
+
+    function alterarTitulo(idAquario) {
+        var tituloAquario = document.getElementById("tituloAquario")
+        tituloAquario.innerHTML = "Últimas medidas de Temperatura e Umidade do <span style='color: #e6005a'>Aquário " + idAquario + "</span>"
+    }
+
+    // O gráfico é construído com três funções:
+    // 1. obterDadosGrafico -> Traz dados do Banco de Dados para montar o gráfico da primeira vez
+    // 2. plotarGrafico -> Monta o gráfico com os dados trazidos e exibe em tela
+    // 3. atualizarGrafico -> Atualiza o gráfico, trazendo novamente dados do Banco
+
+    // Esta função *obterDadosGrafico* busca os últimos dados inseridos em tabela de medidas.
+    // para, quando carregar o gráfico da primeira vez, já trazer com vários dados.
+    // A função *obterDadosGrafico* também invoca a função *plotarGrafico*
+
+    //     Se quiser alterar a busca, ajuste as regras de negócio em src/controllers
+    //     Para ajustar o "select", ajuste o comando sql em src/models
+    function obterDadosGrafico(idAquario) {
+        alterarTitulo(idAquario)
+
+        if (proximaAtualizacao != undefined) {
+            clearTimeout(proximaAtualizacao);
+        }
+
+        fetch(`/medidas/ultimas/${idAquario}`, { cache: 'no-store' }).then(function (response) {
+            if (response.ok) {
+                response.json().then(function (resposta) {
+                    console.log(`Dados recebidos: ${JSON.stringify(resposta)}`);
+                    resposta.reverse();
+
+                    plotarGrafico(resposta, idAquario);
+                });
+            } else {
+                console.error('Nenhum dado encontrado ou erro na API');
+            }
+        })
+            .catch(function (error) {
+                console.error(`Erro na obtenção dos dados p/ gráfico: ${error.message}`);
+            });
+    }
+
+    // Esta função *plotarGrafico* usa os dados capturados na função anterior para criar o gráfico
+    // Configura o gráfico (cores, tipo, etc), materializa-o na página e, 
+    // A função *plotarGrafico* também invoca a função *atualizarGrafico*
+    function plotarGrafico(resposta, idAquario) {
+        console.log('iniciando plotagem do gráfico...');
+
+        var dados = {
+            labels: [],
+            datasets: [
+                {
+                    yAxisID: 'y-umidade',
+                    label: 'Umidade',
+                    borderColor: '#32B9CD',
+                    backgroundColor: '#32b9cd8f',
+                    fill: true,
+                    data: []
+                },
+                {
+                    yAxisID: 'y-temperatura',
+                    label: 'Temperatura',
+                    borderColor: '#FFF',
+                    backgroundColor: '#32b9cd8f',
+                    fill: true,
+                    data: []
+                }
+            ]
+        };
+
+        for (i = 0; i < resposta.length; i++) {
+            var registro = resposta[i];
+            dados.labels.push(registro.momento_grafico);
+            dados.datasets[0].data.push(registro.umidade);
+            dados.datasets[1].data.push(registro.temperatura);
+        }
+
+        console.log(JSON.stringify(dados));
+
+        var ctx = canvas_grafico.getContext('2d');
+        window.grafico_linha = Chart.Line(ctx, {
+            data: dados,
+            options: {
+                responsive: true,
+                animation: { duration: 500 },
+                hoverMode: 'index',
+                stacked: false,
+                title: {
+                    display: false,
+                    text: 'Dados capturados'
+                },
+                scales: {
+                    yAxes: [{
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        id: 'y-temperatura',
+                        ticks: {
+                            beginAtZero: true,
+                            max: 100,
+                            min: 0
+                        }
+                    }, {
+                        type: 'linear',
+                        display: false,
+                        position: 'right',
+                        id: 'y-umidade',
+                        ticks: {
+                            beginAtZero: true,
+                            max: 100,
+                            min: 0
+                        },
+
+                        gridLines: {
+                            drawOnChartArea: false,
+                        },
+                    }],
+                }
+            }
+        });
+
+        setTimeout(() => atualizarGrafico(idAquario, dados), 2000);
+    }
+
+
+    // Esta função *atualizarGrafico* atualiza o gráfico que foi renderizado na página,
+    // buscando a última medida inserida em tabela contendo as capturas, 
+
+    //     Se quiser alterar a busca, ajuste as regras de negócio em src/controllers
+    //     Para ajustar o "select", ajuste o comando sql em src/models
+    function atualizarGrafico(idAquario, dados) {
+
+        fetch(`/medidas/tempo-real/${idAquario}`, { cache: 'no-store' }).then(function (response) {
+            if (response.ok) {
+                response.json().then(function (novoRegistro) {
+
+                    console.log(`Dados recebidos: ${JSON.stringify(novoRegistro)}`);
+                    console.log(`Dados atuais do gráfico: ${dados}`);
+
+                    // tirando e colocando valores no gráfico
+                    dados.labels.shift(); // apagar o primeiro
+                    dados.labels.push(novoRegistro[0].momento_grafico); // incluir um novo momento
+                    
+                    dados.datasets[0].data.shift();  // apagar o primeiro de umidade
+                    dados.datasets[0].data.push(novoRegistro[0].umidade); // incluir uma nova medida de umidade
+                    
+                    dados.datasets[1].data.shift();  // apagar o primeiro de temperatura
+                    dados.datasets[1].data.push(novoRegistro[0].temperatura); // incluir uma nova medida de temperatura
+
+                    window.grafico_linha.update();
+
+                    // Altere aqui o valor em ms se quiser que o gráfico atualize mais rápido ou mais devagar
+                    proximaAtualizacao = setTimeout(() => atualizarGrafico(idAquario, dados), 2000);
+                });
+            } else {
+                console.error('Nenhum dado encontrado ou erro na API');
+                // Altere aqui o valor em ms se quiser que o gráfico atualize mais rápido ou mais devagar
+                proximaAtualizacao = setTimeout(() => atualizarGrafico(idAquario, dados), 2000);
+            }
+        })
+            .catch(function (error) {
+                console.error(`Erro na obtenção dos dados p/ gráfico: ${error.message}`);
+            });
+
+    }
+</script> -->
+
+
