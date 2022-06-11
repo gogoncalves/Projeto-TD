@@ -42,17 +42,22 @@ function enviarResultadoQuiz(fkUsuario, porcentagem)
     return database.executar(instrucao);
 }
 
-function pegarDadosGraficoTentativas(fkUsuario)
+function pegarDadosGraficoTentativas()
 {
     let instrucao = `
-    SELECT nome, porcentagem
+    SELECT nome AS coluna, round(avg(porcentagem)) AS contagem
 	FROM quiz
 		JOIN usuario
 			ON fkUsuario = idUsuario
-			AND fkUsuario = 2;    
+				GROUP BY nome
+                    ORDER BY round(avg(porcentagem)) ASC
+						LIMIT 5; 
     `
+    
     return database.executar(instrucao);
 }
+
+
 
 module.exports = {
     entrar,

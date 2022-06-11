@@ -123,25 +123,16 @@ function enviarResultadoQuiz (req, res)
 
 function pegarDadosGraficoTentativas(req, res)
 {
-    let fkUsuario = req.body.fkUsuarioServer;
 
-    if(fkUsuario == undefined)
-    {
-        res.status(400).send("O id do usuário está undefined");
-    }
-    else
-    {
-        usuarioModel.pegarDadosGraficoTentativas(fkUsuario)
+        usuarioModel.pegarDadosGraficoTentativas()
             .then((resposta) => {
-                console.log(resposta);
-                console.log(JSON.stringify(resposta));
-                res.json(resposta);
-            })
+                res.status(200).json(resposta);
+                    
+           })
             .catch((erro) => {
                 console.log(erro.sqlMessage);
                 res.status(500).send(erro.sqlMessage);
             })
-    }   
 }           
 
 
