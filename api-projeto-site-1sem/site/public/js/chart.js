@@ -6,13 +6,14 @@ const data = {
     labels,
     datasets: [{
         data: dados,
-        label: '',
+        label: 'Analise de Desenvolvimento Sustentavel',
         fill: true,
+        color: ['#000000'],
         backgroundColor: [
-        'rgba(153, 102, 255, 0.2)'
+        'rgba(0, 255, 55, 0.583)'
         ],
         borderColor: [
-            '#6d7bf9',
+            '#000000',
           ],
           borderWidth: 1 
     }]

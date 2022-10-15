@@ -258,7 +258,7 @@ body:hover::-webkit-scrollbar-thumb {
 }
 
 .cabecalho-menu-item2:hover::after {
-    width: 62%;
+    width: 67%;
 }
 
 .cabecalho-menu-item2:hover {
